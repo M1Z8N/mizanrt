@@ -19,7 +19,15 @@ export async function GET(req: Request) {
   const data = await res.json();
   const tracks = data?.toptracks?.track || [];
 
-  const mapped = tracks.map((t: any) => ({
+  interface LastFmTrack {
+    name?: string;
+    artist?: { name?: string };
+    playcount?: string | number;
+    url?: string;
+    image?: Array<{ "#text"?: string }>;
+  }
+
+  const mapped = tracks.map((t: LastFmTrack) => ({
     title: t?.name,
     artist: t?.artist?.name,
     playcount: Number(t?.playcount) || 0,
