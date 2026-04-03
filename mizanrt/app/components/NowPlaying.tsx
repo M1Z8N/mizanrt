@@ -34,11 +34,13 @@ export default function NowPlaying() {
 
   if (!data) return (
     <div className="animate-pulse loading-state" style={{
-      background: 'rgba(255,255,255,0.06)',
-      border: '1px solid rgba(255,255,255,0.2)',
+      background: 'var(--card)',
+      border: '1px solid var(--card-border)',
       borderRadius: 8,
       padding: '12px 16px',
-      color: 'inherit'
+      color: 'inherit',
+      position: 'relative',
+      zIndex: 20
     }}>
       <div style={{ opacity: 0.7, fontSize: '0.95em' }}>loading music…</div>
       <style jsx>{`
@@ -62,11 +64,11 @@ export default function NowPlaying() {
       target="_blank"
       rel="noreferrer"
       className="no-underline"
-      style={{ color: 'inherit', textDecoration: 'none' }}
+      style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
     >
       <div className="flex items-center gap-4 transition-all duration-300 not-playing-state" style={{
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.2)',
+        background: 'var(--card)',
+        border: '1px solid var(--card-border)',
         borderRadius: 8,
         padding: 16,
         color: 'inherit'
@@ -98,11 +100,11 @@ export default function NowPlaying() {
         target="_blank"
         rel="noreferrer"
         className="no-underline"
-        style={{ color: 'inherit', textDecoration: 'none' }}
+        style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
       >
         <div className="flex items-center gap-4 transition-all duration-300 not-playing-state" style={{
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'var(--card)',
+          border: '1px solid var(--card-border)',
           borderRadius: 8,
           padding: 16,
           color: 'inherit'
@@ -134,11 +136,11 @@ export default function NowPlaying() {
       target="_blank" 
       rel="noreferrer"
       className="no-underline"
-      style={{ color: 'inherit', textDecoration: 'none' }}
+      style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
     >
       <div className="flex items-center gap-4 transition-all duration-300 group" style={{
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.2)',
+        background: 'var(--card)',
+        border: '1px solid var(--card-border)',
         borderRadius: 8,
         padding: 16,
         color: 'inherit'

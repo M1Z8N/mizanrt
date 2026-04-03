@@ -6,7 +6,6 @@ export default function HomeAirportHoverVideo() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [visible, setVisible] = useState(false)
-  const [videoTop, setVideoTop] = useState<number | undefined>(undefined)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -15,15 +14,6 @@ export default function HomeAirportHoverVideo() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-
-  useEffect(() => {
-    if (visible && containerRef.current && isMobile) {
-      const rect = containerRef.current.getBoundingClientRect()
-      setVideoTop(rect.bottom + 12)
-    } else {
-      setVideoTop(undefined)
-    }
-  }, [visible, isMobile])
 
   async function playVideo() {
     const v = videoRef.current
@@ -96,18 +86,18 @@ export default function HomeAirportHoverVideo() {
           marginLeft: 12,
           marginTop: 8,
           borderRadius: 8,
-          backgroundColor: '#7d0812',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+          backgroundColor: 'var(--bg)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
           display: visible ? 'block' : 'none',
-          zIndex: 9999,
+          zIndex: 1,
           overflow: 'hidden',
-          ...(videoTop !== undefined && isMobile ? {
-            position: 'fixed',
+          ...(isMobile ? {
+            position: 'absolute',
             left: '50%',
-            top: `${videoTop}px`,
+            top: '100%',
             transform: 'translateX(-50%)',
             marginLeft: 0,
-            marginTop: 0
+            marginTop: 8
           } : {})
         }}
       >

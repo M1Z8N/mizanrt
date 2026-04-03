@@ -17,7 +17,7 @@ export default function TopTracks({ limit = 3 }: { limit?: number }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/lastfm/top-tracks?period=overall&limit=${limit}`, { cache: "no-store" });
+      const r = await fetch(`/api/lastfm/top-tracks?period=7day&limit=${limit}`, { cache: "no-store" });
       const json = await r.json();
       setTracks(json.tracks || []);
     } finally {
@@ -31,11 +31,13 @@ export default function TopTracks({ limit = 3 }: { limit?: number }) {
 
   return (
     <div className="top-tracks-container" style={{
-      background: 'rgba(255,255,255,0.06)',
-      border: '1px solid rgba(255,255,255,0.2)',
+      background: 'var(--card)',
+      border: '1px solid var(--card-border)',
       borderRadius: 8,
       padding: 16,
-      color: 'inherit'
+      color: 'inherit',
+      position: 'relative',
+      zIndex: 20
     }}>
       <div className="top-tracks-header flex items-center justify-between" style={{ marginBottom: 16 }}>
         <div style={{ textTransform: 'lowercase', opacity: 0.6, fontSize: '0.85em', fontWeight: 400 }}>top tracks</div>
