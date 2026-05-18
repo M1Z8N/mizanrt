@@ -21,27 +21,34 @@ export default function AgeTicker({
   const MS_PER_YEAR = 365.2425 * 24 * 60 * 60 * 1000;
   const birth = useMemo(() => new Date(birthISO).getTime(), [birthISO]);
 
-  const compute = () => (Date.now() - birth) / MS_PER_YEAR;
-  const [age, setAge] = useState<number>(compute());
+  // Start as null so SSR and the first client render produce identical
+  // markup (a stable placeholder). The real value is set in useEffect.
+  const [age, setAge] = useState<number | null>(null);
 
   useEffect(() => {
-    setAge(compute()); // sync immediately on mount
+    const compute = () => (Date.now() - birth) / MS_PER_YEAR;
+    setAge(compute());
     const id = setInterval(() => setAge(compute()), intervalMs);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [birth, intervalMs]);
 
-  // Avoid flicker of long floats with a formatter
-  const formatted = useMemo(
+  const formatter = useMemo(
     () =>
       new Intl.NumberFormat("en-US", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
-      }).format(age),
-    [age, decimals]
+      }),
+    [decimals]
+  );
+
+  const placeholder = useMemo(
+    () => `00.${"0".repeat(decimals)}`,
+    [decimals]
   );
 
   return (
-    <span aria-label="Live age in years">{formatted}</span>
+    <span aria-label="Live age in years" suppressHydrationWarning>
+      {age === null ? placeholder : formatter.format(age)}
+    </span>
   );
 }

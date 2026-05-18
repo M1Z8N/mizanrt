@@ -12,6 +12,9 @@ interface NowPlayingData {
   artist?: string;
 }
 
+const SPOTIFY_URL =
+  "https://open.spotify.com/user/sasasasasassssssssss?si=88565806199d476b";
+
 export default function NowPlaying() {
   const [data, setData] = useState<NowPlayingData | null>(null);
 
@@ -20,224 +23,168 @@ export default function NowPlaying() {
       const r = await fetch("/api/lastfm", { cache: "no-store" });
       setData(await r.json());
     } catch {
-      // Silently handle fetch errors
+      // ignore
     }
   }, []);
 
   useEffect(() => {
-    // Initial load and periodic refresh
     void load();
     const id = setInterval(() => void load(), 20000);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  if (!data) return (
-    <div className="animate-pulse loading-state" style={{
-      background: 'var(--card)',
-      border: '1px solid var(--card-border)',
-      borderRadius: 8,
-      padding: '12px 16px',
-      color: 'inherit',
-      position: 'relative',
-      zIndex: 20
-    }}>
-      <div style={{ opacity: 0.7, fontSize: '0.95em' }}>loading music…</div>
-      <style jsx>{`
-        @media (max-width: 640px) {
-          .loading-state {
-            padding: 10px 12px !important;
-          }
-        }
-        @media (max-width: 420px) {
-          .loading-state {
-            padding: 8px 10px !important;
-          }
-        }
-      `}</style>
-    </div>
-  );
-
-  if (data.error) return (
-    <a
-      href="https://open.spotify.com/user/sasasasasassssssssss?si=88565806199d476b"
-      target="_blank"
-      rel="noreferrer"
-      className="no-underline"
-      style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
-    >
-      <div className="flex items-center gap-4 transition-all duration-300 not-playing-state" style={{
-        background: 'var(--card)',
-        border: '1px solid var(--card-border)',
-        borderRadius: 8,
-        padding: 16,
-        color: 'inherit'
-      }}>
-        <div className="min-w-0">
-          <div style={{ textTransform: 'lowercase', opacity: 0.6, fontSize: '0.85em', marginBottom: 4 }}>not playing</div>
-          <div className="truncate" style={{ fontSize: '0.95em' }}>view my spotify profile →</div>
-        </div>
-      </div>
-      <style jsx>{`
-        @media (max-width: 640px) {
-          .not-playing-state {
-            padding: 10px !important;
-          }
-        }
-        @media (max-width: 420px) {
-          .not-playing-state {
-            padding: 8px !important;
-          }
-        }
-      `}</style>
-    </a>
-  );
-
-  if (data.status !== "playing") {
-    return (
-      <a
-        href="https://open.spotify.com/user/sasasasasassssssssss?si=88565806199d476b"
-        target="_blank"
-        rel="noreferrer"
-        className="no-underline"
-        style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
-      >
-        <div className="flex items-center gap-4 transition-all duration-300 not-playing-state" style={{
-          background: 'var(--card)',
-          border: '1px solid var(--card-border)',
-          borderRadius: 8,
-          padding: 16,
-          color: 'inherit'
-        }}>
-          <div className="min-w-0">
-            <div style={{ textTransform: 'lowercase', opacity: 0.6, fontSize: '0.85em', marginBottom: 4 }}>not playing</div>
-            <div className="truncate" style={{ fontSize: '0.95em' }}>view my spotify profile →</div>
-          </div>
-        </div>
-        <style jsx>{`
-          @media (max-width: 640px) {
-            .not-playing-state {
-              padding: 10px !important;
-            }
-          }
-          @media (max-width: 420px) {
-            .not-playing-state {
-              padding: 8px !important;
-            }
-          }
-        `}</style>
-      </a>
-    );
-  }
+  const isPlaying = !!data && !data.error && data.status === "playing";
+  const href = isPlaying && data?.url ? data.url : SPOTIFY_URL;
 
   return (
-    <a 
-      href={data.url} 
-      target="_blank" 
-      rel="noreferrer"
-      className="no-underline"
-      style={{ color: 'inherit', textDecoration: 'none', position: 'relative', zIndex: 20 }}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="np"
+      aria-label={
+        isPlaying
+          ? `Now playing: ${data?.title} by ${data?.artist}`
+          : "Open Spotify profile"
+      }
     >
-      <div className="flex items-center gap-4 transition-all duration-300 group" style={{
-        background: 'var(--card)',
-        border: '1px solid var(--card-border)',
-        borderRadius: 8,
-        padding: 16,
-        color: 'inherit'
-      }}>
-        {data.cover && (
-          <div className="relative flex-shrink-0">
+      <div className="head">
+        <span>{isPlaying ? "now playing" : "not playing"}</span>
+        {isPlaying && (
+          <span className="eq" aria-hidden="true">
+            <i style={{ animationDelay: "-0.2s" }} />
+            <i style={{ animationDelay: "-0.1s" }} />
+            <i style={{ animationDelay: "-0.3s" }} />
+          </span>
+        )}
+      </div>
+      <div className="row">
+        <div className="cover">
+          {isPlaying && data?.cover ? (
             <Image
               src={data.cover}
-              alt="Album cover"
-              width={64}
-              height={64}
-              className="np-cover rounded-md object-cover"
+              alt=""
+              width={44}
+              height={44}
               unoptimized
+              className="cover-img"
             />
-            <div className="absolute inset-0 rounded-md ring-1 ring-white/20 ring-inset" />
+          ) : (
+            <span className="placeholder" aria-hidden="true">
+              ♪
+            </span>
+          )}
+        </div>
+        <div className="text">
+          <div className="title">
+            {!data ? "loading…" : isPlaying ? data.title : "spotify →"}
           </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="np-header">
-            <span>now playing</span>
-            <span className="eqbar" style={{ animationDelay: "-0.2s" }} />
-            <span className="eqbar" style={{ animationDelay: "-0.1s" }} />
-            <span className="eqbar" style={{ animationDelay: "-0.3s" }} />
-            <span className="eqbar" style={{ animationDelay: "-0.15s" }} />
-          </div>
-          <div className="truncate" style={{ fontSize: '1.05em', fontWeight: 400, marginTop: 4, marginBottom: 2 }}>{data.title}</div>
-          <div className="truncate" style={{ opacity: 0.7, fontSize: '0.9em' }}>{data.artist}</div>
+          {isPlaying && data?.artist && (
+            <div className="artist">{data.artist}</div>
+          )}
         </div>
       </div>
+
       <style jsx>{`
-        .group > div {
-          padding: 16px;
+        .np {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          text-decoration: none;
+          color: inherit;
+          transition: opacity 200ms ease;
         }
-        .np-header {
+        .np:hover {
+          opacity: 0.78;
+        }
+
+        .head {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
+          font-size: 0.7em;
           text-transform: lowercase;
-          opacity: 0.6;
-          font-size: 0.85em;
-          margin-bottom: 2px;
+          letter-spacing: 0.06em;
+          color: var(--muted);
         }
-        .np-cover {
-          width: 64px;
-          height: 64px;
+
+        .row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
         }
-        .eqbar {
-          width: 2.5px;
-          display: inline-block;
+
+        .cover {
+          width: 44px;
+          height: 44px;
+          flex-shrink: 0;
+          border-radius: 6px;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: color-mix(in oklab, var(--fg) 8%, transparent);
+          color: var(--muted);
+          font-size: 18px;
+          line-height: 1;
+        }
+        .cover :global(.cover-img) {
+          width: 44px !important;
+          height: 44px !important;
+          object-fit: cover;
+          display: block;
+        }
+
+        .text {
+          min-width: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .title {
+          font-size: 0.92em;
+          letter-spacing: -0.005em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .artist {
+          font-size: 0.78em;
+          color: var(--muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .eq {
+          display: inline-flex;
+          align-items: flex-end;
+          gap: 2px;
+          height: 8px;
+        }
+        .eq i {
+          width: 2px;
           background: currentColor;
-          height: 10px;
           border-radius: 2px;
+          height: 100%;
           animation: bounce 0.9s infinite ease-in-out;
         }
         @keyframes bounce {
-          0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
-          50% { transform: scaleY(1.5); opacity: 1; }
-        }
-        @media (max-width: 640px) {
-          .group > div {
-            padding: 10px !important;
-            gap: 10px !important;
+          0%,
+          100% {
+            transform: scaleY(0.4);
+            opacity: 0.5;
           }
-          .np-header {
-            gap: 6px;
-            font-size: 0.8em;
-            margin-bottom: 2px;
-          }
-          .np-cover {
-            width: 48px;
-            height: 48px;
-          }
-          .min-w-0 {
-            font-size: 0.92em;
+          50% {
+            transform: scaleY(1);
+            opacity: 1;
           }
         }
-        @media (max-width: 420px) {
-          .group > div {
-            padding: 8px !important;
-            gap: 8px !important;
-          }
-          .np-header {
-            gap: 5px;
-            font-size: 0.72em;
-            margin-bottom: 1px;
-          }
-          .np-cover {
-            width: 40px;
-            height: 40px;
-          }
-          .eqbar {
-            width: 2px;
-            height: 7px;
-          }
-          .min-w-0 {
-            font-size: 0.88em;
+        @media (prefers-reduced-motion: reduce) {
+          .eq i {
+            animation: none;
           }
         }
       `}</style>

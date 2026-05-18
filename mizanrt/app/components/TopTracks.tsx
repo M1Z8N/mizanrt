@@ -5,124 +5,131 @@ import { useCallback, useEffect, useState } from "react";
 type TopTrack = {
   title: string;
   artist: string;
-  playcount: number;
   url: string;
-  cover?: string | null;
 };
 
 export default function TopTracks({ limit = 3 }: { limit?: number }) {
   const [tracks, setTracks] = useState<TopTrack[] | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
-      const r = await fetch(`/api/lastfm/top-tracks?period=7day&limit=${limit}`, { cache: "no-store" });
+      const r = await fetch(
+        `/api/lastfm/top-tracks?period=7day&limit=${limit}`,
+        { cache: "no-store" }
+      );
       const json = await r.json();
       setTracks(json.tracks || []);
-    } finally {
-      setLoading(false);
+    } catch {
+      setTracks([]);
     }
   }, [limit]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   return (
-    <div className="top-tracks-container" style={{
-      background: 'var(--card)',
-      border: '1px solid var(--card-border)',
-      borderRadius: 8,
-      padding: 16,
-      color: 'inherit',
-      position: 'relative',
-      zIndex: 20
-    }}>
-      <div className="top-tracks-header flex items-center justify-between" style={{ marginBottom: 16 }}>
-        <div style={{ textTransform: 'lowercase', opacity: 0.6, fontSize: '0.85em', fontWeight: 400 }}>top tracks</div>
-      </div>
-
-      {(!tracks || loading) && (
-        <div className="animate-pulse space-y-3">
-          {[0, 1, 2].slice(0, limit).map((i) => (
-            <div key={i} className="flex flex-col gap-1.5 p-2">
-              <div className="h-4 rounded bg-white/10" style={{ width: '80%' }} />
-              <div className="h-3 rounded bg-white/5" style={{ width: '60%' }} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tracks && !loading && (
-        <ul className="space-y-2 track-list" style={{ color: 'inherit', listStyle: 'none', padding: 0, margin: 0 }}>
-          {tracks.slice(0, limit).map((t, idx) => (
-            <li key={t.url + idx}>
-              <a href={t.url} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="group block">
-                <div className="track-item rounded hover:bg-white/5 transition-all duration-200 p-2">
-                  <div className="track-title truncate group-hover:opacity-100 transition-opacity" style={{ fontSize: '0.95em', fontWeight: 400, marginBottom: 4, opacity: 0.95 }}>
-                    {t.title}
-                  </div>
-                  <div className="track-artist truncate" style={{ opacity: 0.6, fontSize: '0.85em' }}>{t.artist}</div>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="tt">
+      <div className="label">top tracks</div>
+      <ol className="list">
+        {tracks === null
+          ? Array.from({ length: limit }).map((_, i) => (
+              <li key={`s-${i}`} className="item">
+                <span className="num">{i + 1}</span>
+                <span className="sk" />
+              </li>
+            ))
+          : tracks.slice(0, limit).map((t, i) => (
+              <li key={t.url + i} className="item">
+                <span className="num">{i + 1}</span>
+                <a
+                  href={t.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link"
+                >
+                  <span className="name">{t.title}</span>
+                  <span className="dash"> — </span>
+                  <span className="artist">{t.artist}</span>
+                </a>
+              </li>
+            ))}
+      </ol>
 
       <style jsx>{`
-        @media (max-width: 640px) {
-          .top-tracks-container {
-            padding: 10px !important;
+        .tt {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .label {
+          font-size: 0.7em;
+          text-transform: lowercase;
+          letter-spacing: 0.06em;
+          color: var(--muted);
+        }
+        .list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .item {
+          display: grid;
+          grid-template-columns: 14px 1fr;
+          gap: 8px;
+          font-size: 0.86em;
+          align-items: baseline;
+          min-width: 0;
+        }
+        .num {
+          color: var(--muted);
+          font-variant-numeric: tabular-nums;
+          font-size: 0.78em;
+          letter-spacing: 0.02em;
+        }
+        .link {
+          color: inherit;
+          text-decoration: none;
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: opacity 200ms ease;
+          min-width: 0;
+        }
+        .link:hover {
+          opacity: 0.65;
+        }
+        .dash,
+        .artist {
+          color: var(--muted);
+        }
+        .sk {
+          display: inline-block;
+          height: 9px;
+          width: 70%;
+          background: color-mix(in oklab, var(--fg) 8%, transparent);
+          border-radius: 3px;
+          animation: pulse 1.4s infinite ease-in-out;
+        }
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 0.6;
           }
-          .top-tracks-header {
-            margin-bottom: 8px !important;
-          }
-          .top-tracks-header > div {
-            font-size: 0.8em !important;
-          }
-          .track-list {
-            gap: 4px !important;
-          }
-          .track-item {
-            padding: 6px !important;
-          }
-          .track-title {
-            font-size: 0.9em !important;
-            margin-bottom: 2px !important;
-          }
-          .track-artist {
-            font-size: 0.78em !important;
+          50% {
+            opacity: 1;
           }
         }
-        @media (max-width: 420px) {
-          .top-tracks-container {
-            padding: 8px !important;
-          }
-          .top-tracks-header {
-            margin-bottom: 6px !important;
-          }
-          .top-tracks-header > div {
-            font-size: 0.72em !important;
-          }
-          .track-list {
-            gap: 2px !important;
-          }
-          .track-item {
-            padding: 5px !important;
-          }
-          .track-title {
-            font-size: 0.85em !important;
-            margin-bottom: 1px !important;
-          }
-          .track-artist {
-            font-size: 0.72em !important;
+        @media (prefers-reduced-motion: reduce) {
+          .sk {
+            animation: none;
           }
         }
       `}</style>
     </div>
   );
 }
-
-

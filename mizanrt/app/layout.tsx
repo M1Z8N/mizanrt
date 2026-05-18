@@ -1,27 +1,22 @@
-import './globals.css'
-import type { ReactNode } from 'react'
-import { Space_Grotesk } from 'next/font/google'
-import ValorantRankHoverVideo from './components/ValorantRankHoverVideo'
+import "./globals.css";
+import type { ReactNode } from "react";
+import { Space_Grotesk } from "next/font/google";
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: '300',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  weight: "300",
+  display: "swap",
+});
 
 export const metadata = {
-  title: 'MizanRT',
-  description: 'Mizan Tompkins',
+  title: "MizanRT",
+  description: "Mizan Tompkins",
   icons: {
-    icon: '/favicon.ico'
-  }
-}
+    icon: "/favicon.ico",
+  },
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -31,44 +26,7 @@ export default function RootLayout({
         <meta name="description" content={metadata.description} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className={spaceGrotesk.className}>
-        <div className="layout-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <div style={{ display: 'flex', flex: 1 }}>
-            <aside
-              className="sidebar"
-              style={{
-                width: 160,
-                padding: '12px 10px',
-                borderRight: '1px solid rgba(255,255,255,0.15)'
-              }}
-            >
-              <nav>
-                <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 12, letterSpacing: 0.6 }}>MIZAN</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 1.4 }}>
-                  <li>
-                    <a href="https://x.com/mizanval" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>X</a>
-                  </li>
-                  <li>
-                    <a href="https://www.linkedin.com/in/mizanrt" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>LinkedIn</a>
-                  </li>
-                </ul>
-              </nav>
-            </aside>
-            <div className="main-content" style={{ flex: 1, minWidth: 0, position: 'relative' }}>
-              {children}
-            </div>
-          </div>
-          <ValorantRankHoverVideo />
-          <footer className="mobile-footer" style={{ display: 'none', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '10px 16px 8px' }}>
-              <nav style={{ display: 'flex', gap: '12px', justifyContent: 'center', fontSize: '0.85em' }}>
-                <a href="https://x.com/mizanval" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>X</a>
-                <a href="https://www.linkedin.com/in/mizanrt" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', textTransform: 'lowercase' }}>LinkedIn</a>
-              </nav>
-            </div>
-          </footer>
-        </div>
-      </body>
+      <body className={spaceGrotesk.className}>{children}</body>
     </html>
-  )
+  );
 }
