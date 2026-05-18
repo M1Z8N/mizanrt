@@ -1,7 +1,128 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+const FADE_MS = 1500;
+const RADIUS = 1;
+
 export default function AsciiTruck() {
+  const preRef = useRef<HTMLPreElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const pre = preRef.current;
+    const layer = layerRef.current;
+    if (!pre || !layer) return;
+
+    let charW = 3.6;
+    let charH = 6;
+    const textNode = pre.firstChild;
+    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+      const content = textNode.textContent ?? "";
+      const firstNL = content.indexOf("\n");
+      const sample =
+        firstNL > 0 ? Math.min(firstNL, 50) : Math.min(content.length, 50);
+      if (sample > 0) {
+        try {
+          const range = document.createRange();
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, sample);
+          const r = range.getBoundingClientRect();
+          charW = r.width / sample;
+          charH = r.height;
+        } catch {}
+      }
+    }
+
+    const lines = (pre.textContent ?? "").split("\n");
+    type Active = { el: HTMLSpanElement; timer: number };
+    const active = new Map<string, Active>();
+    let lastCx = -9999;
+    let lastCy = -9999;
+
+    const onMove = (e: MouseEvent) => {
+      const rect = pre.getBoundingClientRect();
+      const cx = Math.floor((e.clientX - rect.left) / charW);
+      const cy = Math.floor((e.clientY - rect.top) / charH);
+      if (cx === lastCx && cy === lastCy) return;
+      lastCx = cx;
+      lastCy = cy;
+
+      const R2 = RADIUS * RADIUS + 0.5;
+      const frag = document.createDocumentFragment();
+      const fresh: HTMLSpanElement[] = [];
+
+      for (let dy = -RADIUS; dy <= RADIUS; dy++) {
+        for (let dx = -RADIUS; dx <= RADIUS; dx++) {
+          if (dx * dx + dy * dy > R2) continue;
+          const r = cy + dy;
+          const c = cx + dx;
+          if (r < 0 || r >= lines.length) continue;
+          const line = lines[r];
+          if (!line || c < 0 || c >= line.length) continue;
+          const ch = line[c];
+          if (ch === " " || ch === "\t") continue;
+
+          const key = r + "," + c;
+          const existing = active.get(key);
+          if (existing) {
+            clearTimeout(existing.timer);
+            const el = existing.el;
+            el.style.transition = "none";
+            el.style.opacity = "1";
+            void el.offsetWidth;
+            el.style.transition = `opacity ${FADE_MS}ms linear`;
+            el.style.opacity = "0";
+            existing.timer = window.setTimeout(() => {
+              el.remove();
+              active.delete(key);
+            }, FADE_MS + 50);
+          } else {
+            const el = document.createElement("span");
+            el.textContent = Math.random() < 0.5 ? "0" : "1";
+            const s = el.style;
+            s.position = "absolute";
+            s.left = c * charW + "px";
+            s.top = r * charH + "px";
+            s.opacity = "1";
+            s.transition = `opacity ${FADE_MS}ms linear`;
+            frag.appendChild(el);
+            fresh.push(el);
+            const timer = window.setTimeout(() => {
+              el.remove();
+              active.delete(key);
+            }, FADE_MS + 50);
+            active.set(key, { el, timer });
+          }
+        }
+      }
+
+      if (fresh.length > 0) {
+        layer.appendChild(frag);
+        requestAnimationFrame(() => {
+          for (const el of fresh) el.style.opacity = "0";
+        });
+      }
+    };
+
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      active.forEach(({ el, timer }) => {
+        clearTimeout(timer);
+        el.remove();
+      });
+      active.clear();
+    };
+  }, []);
+
   return (
-    <pre className="font-mono text-[6px] leading-[6px] whitespace-pre select-none">
-      {`***##%%##%####*+++***%%@%%%%##*+**#*%##**#**##*+=**++==+=-==***+==+*#***##*#@@%%%%#%%##%#***+++**++**********************++++++*****#***************************************+=-........:=++++**++************+++++***+++++++++++++++++++++++++**++**++*+++++++++++++++++++++++++++++++++++++++++++++=++===+===========----------:::::::::::::::::::::::::::::........................::::::..:::::::::::::::::::
+    <div className="ascii-wrap">
+      <pre
+        ref={preRef}
+        className="ascii-art font-mono text-[6px] leading-[6px] whitespace-pre"
+      >
+        {`***##%%##%####*+++***%%@%%%%##*+**#*%##**#**##*+=**++==+=-==***+==+*#***##*#@@%%%%#%%##%#***+++**++**********************++++++*****#***************************************+=-........:=++++**++************+++++***+++++++++++++++++++++++++**++**++*+++++++++++++++++++++++++++++++++++++++++++++=++===+===========----------:::::::::::::::::::::::::::::........................::::::..:::::::::::::::::::
     #****#%%%##**###**+++#%#+######%#%**#%#@%%##+***+==++=**++*##****===###****+*#%%%%%%##*#++*+*++******************************+****##**************************************+=:..... . ..::-++++********++***+++++++++****+++*++++++++++++++++++++*******+===+++++++++++++++++++++++++++++++++++++++++++================-------::----::::::::::::::::::::::::::...................:::::::::::::::::::::-----------
     *++#**#%##%%#*#*+++=*#*++++*%%*+#*###*+#%*+**%++***==+++=======+**#+*%%%###*##%#%%%%%%**+=*+###%%###******************************#%**************************************+=:......... ...:++*******++++++++***+++++++++***++++++++++++++++++++++++*++-...:=++++=++++++=-::-+++++++++++++++++++++++++++++==============-----:::-:::::::::::::::.:::::::::::::............:..:::::::::::::::::::::---------------
     *##+##**%*+###*#*++++=++=+*+#%#**+*#*#%##%*%%%******+*+**++=+#*#%#*+**#*#%%%#**%%#####**#%%%#####%#******************************#%#**************************************+-........ .......-+*++*++++++++++++*****+++++++***+++++++++++++++++=====+-:.....:===:..:::.....-:-+++++++++++++++++++++++++++++++===========------:-::::::::::::::::::::::::::::::.:::.:.::::....:::::::::::::::---------------------
@@ -147,6 +268,35 @@ export default function AsciiTruck() {
     *******+=++++++*=++*+=+++++*+++++++=+++===+=++++++++++====++=+=====+=====+=====+=====++==========-=====--====-=+=+==++========-========--===----=--==-===--==---=======-=====--==============-====-=-=============--==-================-=========--====-=-====-=-============-=======-===========-==--===-====-====================+=====+==========+=****++++=++++=+=+++++++=+++*++=+++++*+*++**+++++**++++**++
     *****++******++********+*+=++++*++++++++++=+++==+==+++++====--====+===-=====++=++=======+=====-=-==-=++==========-=-====-==========-==-==+=+=-=-=====-====-----====-----=====+===--===-=--=-=--==--+=====--======-==========+=======-=:==-=======-----=============-=-====-=-================++==============-======--========+========+==+++===++=*+**+++=+++++++++++++==+=+++=++++++++++**++*+++****+**++**+++
     *************+**==+*#+*****++++++++++=+***++++=+++++===+=====+=+++++++=====*+++-==+=----===+===+++=---++==+===+==+===+========-==----=++==---=-=-=========---==--=======-===-=-:-=--+=====--====++====+=--==-=--=+====--======================-==--++========-+=++==========+======-=+==-=-=============+=--=-====++====-=====+==+++====+===++++##**+=+==++=++=++=+++==++===++=++++++++***+*++*++++**+++++*+****`}
-    </pre>
+      </pre>
+      <div
+        ref={layerRef}
+        className="trail-layer font-mono text-[6px] leading-[6px]"
+        aria-hidden
+      />
+      <style jsx>{`
+        .ascii-wrap {
+          position: relative;
+          display: inline-block;
+        }
+        .ascii-art {
+          margin: 0;
+          pointer-events: auto;
+          cursor: text;
+        }
+        .ascii-art::selection {
+          background: var(--fg);
+          color: var(--bg);
+        }
+        .trail-layer {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          user-select: none;
+          -webkit-user-select: none;
+          font-weight: 700;
+        }
+      `}</style>
+    </div>
   );
 }

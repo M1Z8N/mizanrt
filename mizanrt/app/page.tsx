@@ -261,12 +261,14 @@ export default function Home() {
             transparent 100%
           );
         }
+        .art :global(.ascii-wrap) {
+          transform: translateY(90px);
+        }
         .art :global(pre) {
           font-size: 6px;
           line-height: 6px;
           margin: 0;
           padding: 0;
-          transform: translateY(90px);
         }
 
         @media (max-width: 760px) {
@@ -295,10 +297,12 @@ export default function Home() {
             opacity: 0.22;
             height: 38%;
           }
+          .art :global(.ascii-wrap) {
+            transform: translateY(60px);
+          }
           .art :global(pre) {
             font-size: 4.5px;
             line-height: 4.5px;
-            transform: translateY(60px);
           }
         }
         @media (max-width: 540px) {
